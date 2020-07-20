@@ -1,0 +1,7 @@
+# Telegram bot configuration
+bot:
+  token: "token"
+
+# Openweather configuration
+openweather:
+  apptoken: "token"
