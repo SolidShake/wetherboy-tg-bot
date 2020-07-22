@@ -39,11 +39,11 @@ func main() {
 			Text:            "Обновить свою геолокацию",
 		}
 
-		if len(*update.Message.NewChatMembers) != 0 {
-			msg := tgbotapi.NewMessage(update.Message.Chat.ID, "Для получения актуальной погоды нажмите кнопку ниже")
-			msg.ReplyMarkup = tgbotapi.NewReplyKeyboard([]tgbotapi.KeyboardButton{btn})
-			bot.Send(msg)
-		}
+		// if len(*update.Message.NewChatMembers) != 0 {
+		msg := tgbotapi.NewMessage(update.Message.Chat.ID, "Для получения актуальной погоды нажмите кнопку ниже")
+		msg.ReplyMarkup = tgbotapi.NewReplyKeyboard([]tgbotapi.KeyboardButton{btn})
+		bot.Send(msg)
+		// }
 
 		if update.Message.Location != nil {
 			msg := tgbotapi.NewMessage(update.Message.Chat.ID, getWeatherInfoByCoord(update.Message.Location.Latitude, update.Message.Location.Longitude))
@@ -54,7 +54,6 @@ func main() {
 }
 
 func getWeatherInfoByCoord(latitude, longitude float64) string {
-	// http://api.openweathermap.org/data/2.5/weather?lat=61.762438&lon=34.376911&appid=709f4fa20539d7cecc587597bd8e417c
 	requestUrl := fmt.Sprintf("http://api.openweathermap.org/data/2.5/weather?lat=%f&lon=%f&appid=709f4fa20539d7cecc587597bd8e417c&units=metric&&lang=ru", latitude, longitude)
 	r, err := http.Get(requestUrl)
 	// Добавить обработку
@@ -69,10 +68,6 @@ func getWeatherInfoByCoord(latitude, longitude float64) string {
 	if err != nil {
 		log.Println(err)
 	}
-
-	// log.Println("===========")
-	// log.Println(string(body))
-	// log.Println("=========")
 
 	result := fmt.Sprintf(
 		"Доброго времени суток!\n\nВы находитесь в городе %s\nТемпература: %.2f ℃\nОщущается как %.2f ℃\nОжидаемая погода: %s\nСкорость ветра: %.2f м/с",
