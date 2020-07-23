@@ -11,6 +11,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"reflect"
 )
 
 import "github.com/SolidShake/wetherboy-tg-bot/iternal/connections"
@@ -59,14 +60,20 @@ func main() {
 		var newChatMembers = update.Message.Chat.ID
 		if newChatMembers != 0 {
 			msg := tgbotapi.NewMessage(update.Message.Chat.ID, "Для получения актуальной погоды нажмите кнопку ниже")
-			msg.ReplyMarkup = tgbotapi.NewReplyKeyboard([]tgbotapi.KeyboardButton{btn, subButton})
-			//msg.ReplyMarkup = tgbotapi.NewReplyKeyboard([]tgbotapi.KeyboardButton{unsubButton})
+			msg.ReplyMarkup = tgbotapi.NewReplyKeyboard([]tgbotapi.KeyboardButton{btn})
 			bot.Send(msg)
+		}
+
+		if reflect.TypeOf(update.Message.Text).Kind() == reflect.String && update.Message.Text != "" {
+			switch update.Message.Text {
+			case "Подписаться на прогноз":
+				dbConnection.AddSub(update.Message.Chat.ID, *update.Message.Location)
+			}
 		}
 
 		if update.Message.Location != nil {
 			msg := tgbotapi.NewMessage(update.Message.Chat.ID, getWeatherInfoByCoord(update.Message.Location.Latitude, update.Message.Location.Longitude))
-			msg.ReplyMarkup = tgbotapi.NewReplyKeyboard([]tgbotapi.KeyboardButton{btn})
+			msg.ReplyMarkup = tgbotapi.NewReplyKeyboard([]tgbotapi.KeyboardButton{btn, subButton})
 			bot.Send(msg)
 			dbConnection.AddSub(update.Message.Chat.ID, *update.Message.Location)
 		}

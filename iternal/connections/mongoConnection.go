@@ -61,7 +61,7 @@ func (c *MongoConnection) Disconnect() {
 
 func (c *MongoConnection) AddSub(chat_id int64, location tgbotapi.Location) {
 	new_sub := Subs{ChatId: chat_id, Coord: location}
-	new_sub.LastUpdateDate = time.Now().Format("2006.01.02 15:04:05")
+	new_sub.LastUpdateDate = time.Now().Format(time.RFC822)
 	filter := bson.D{{"chatid", chat_id}}
 
 	collection := c.client.Database(c.database).Collection("SUBERS")
