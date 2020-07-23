@@ -6,11 +6,13 @@ import (
 	_ "fmt"
 	"github.com/SolidShake/wetherboy-tg-bot/iternal/config"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
+	"go.mongodb.org/mongo-driver/bson"
 	_ "go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	_ "go.mongodb.org/mongo-driver/mongo/readpref"
 	"log"
+	"time"
 )
 
 type Subs struct {
@@ -59,10 +61,20 @@ func (c *MongoConnection) Disconnect() {
 
 func (c *MongoConnection) AddSub(chat_id int64, location tgbotapi.Location) {
 	new_sub := Subs{ChatId: chat_id, Coord: location}
+	new_sub.LastUpdateDate = time.Now().Format("2006.01.02 15:04:05")
+	filter := bson.D{{"chatid", chat_id}}
+
 	collection := c.client.Database(c.database).Collection("SUBERS")
-	insertResult, err := collection.InsertOne(context.TODO(), new_sub)
-	if err != nil {
-		log.Fatal(err)
+	var result Subs
+	notFound := collection.FindOne(context.TODO(), filter).Decode(&result)
+
+	if notFound != nil {
+		insertResult, err := collection.InsertOne(context.TODO(), new_sub)
+		if err != nil {
+			log.Fatal(err)
+		}
+		fmt.Println("Inserted document: ", insertResult.InsertedID)
+	} else {
+		fmt.Printf("Found a single document: %+v\n", result)
 	}
-	fmt.Println("Inserted document: ", insertResult.InsertedID)
 }
