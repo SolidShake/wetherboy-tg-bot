@@ -12,9 +12,16 @@ type Config struct {
 	Bot struct {
 		Token string `yaml:"token"`
 	} `yaml:"bot"`
+
 	OpenWether struct {
 		Token string `yaml:"apptoken"`
 	} `yaml:"openweather"`
+
+	MongoDb struct {
+		Host     string `yaml:"mongoHost"`
+		Port     string `yaml:"mongoPort"`
+		Database string `yaml:"mongoDatabase"`
+	} `yaml:"MongoProperties"`
 }
 
 // GetConfig load configuration from yaml
