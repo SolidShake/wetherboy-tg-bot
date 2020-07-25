@@ -5,3 +5,8 @@ bot:
 # Openweather configuration
 openweather:
   apptoken: "token"
+
+MongoProperties:
+  mongoHost: "localhost"
+  mongoPort: "27017"
+  mongoDatabase: "test"
