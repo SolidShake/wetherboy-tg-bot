@@ -45,23 +45,41 @@ func main() {
 		}
 
 		btn := tgbotapi.KeyboardButton{
+			Text:            "Получить прогноз погоды",
 			RequestLocation: true,
-			Text:            "Обновить свою геолокацию",
+		}
+
+		updateGeoButton := tgbotapi.KeyboardButton{
+			Text:            "Обновить местоположение",
+			RequestLocation: true,
+		}
+
+		cancelButton := tgbotapi.KeyboardButton{
+			Text: "Отмена",
 		}
 
 		subButton := tgbotapi.KeyboardButton{
-			RequestLocation: true,
-			Text:            "Подписаться на прогноз",
+			Text: "Подписаться на прогноз",
 		}
 
-		//unsubButton := tgbotapi.KeyboardButton{
-		//	Text: "Подписаться на прогноз",
-		//}
+		unsubButton := tgbotapi.KeyboardButton{
+			Text: "Отписаться от прогноза",
+		}
 
 		if reflect.TypeOf(update.Message.Text).Kind() == reflect.String && update.Message.Text != "" {
 			switch update.Message.Text {
-			case "Подписаться на прогноз":
-				dbConnection.AddSub(update.Message.Chat.ID, *update.Message.Location)
+			case subButton.Text:
+				//				dbConnection.AddSub(update.Message.Chat.ID, *update.Message.Location)
+				msg := tgbotapi.NewMessage(update.Message.Chat.ID, "Для подписки обновите геолокацию")
+				msg.ReplyMarkup = tgbotapi.NewReplyKeyboard([]tgbotapi.KeyboardButton{updateGeoButton, cancelButton})
+				bot.Send(msg)
+
+			case unsubButton.Text:
+				dbConnection.RemoveSub(update.Message.Chat.ID)
+				msg := tgbotapi.NewMessage(update.Message.Chat.ID, "Вы были отписаны от прогноза погоды")
+				msg.ReplyMarkup = tgbotapi.NewReplyKeyboard([]tgbotapi.KeyboardButton{btn, subButton})
+				bot.Send(msg)
+
 			default:
 				msg := tgbotapi.NewMessage(update.Message.Chat.ID, "Для получения актуальной погоды нажмите кнопку ниже")
 				msg.ReplyMarkup = tgbotapi.NewReplyKeyboard([]tgbotapi.KeyboardButton{btn})
@@ -70,11 +88,27 @@ func main() {
 		}
 
 		if update.Message.Location != nil {
-			msg := tgbotapi.NewMessage(update.Message.Chat.ID, getWeatherInfoByCoord(update.Message.Location.Latitude, update.Message.Location.Longitude))
-			msg.ReplyMarkup = tgbotapi.NewReplyKeyboard([]tgbotapi.KeyboardButton{btn, subButton})
+			//msg := tgbotapi.NewMessage(update.Message.Chat.ID, getWeatherInfoByCoord(update.Message.Location.Latitude, update.Message.Location.Longitude))
+			msg := tgbotapi.NewMessage(update.Message.Chat.ID, "")
+			if dbConnection.IsSub(update.Message.Chat.ID) {
+				fmt.Print("user is sub")
+				msg.Text = getWeatherInfoByCoord(update.Message.Location.Latitude, update.Message.Location.Longitude)
+				msg.ReplyMarkup = tgbotapi.NewReplyKeyboard([]tgbotapi.KeyboardButton{btn, unsubButton})
+			} else {
+				fmt.Print("user not a sub")
+				if update.Message.ReplyToMessage.Text == "Для подписки обновите геолокацию" {
+					dbConnection.AddSub(update.Message.Chat.ID, *update.Message.Location)
+					msg.Text = "Вы были подписаны на прогноз погоды"
+					msg.ReplyMarkup = tgbotapi.NewReplyKeyboard([]tgbotapi.KeyboardButton{btn, unsubButton})
+				} else {
+					msg.Text = getWeatherInfoByCoord(update.Message.Location.Latitude, update.Message.Location.Longitude)
+					msg.ReplyMarkup = tgbotapi.NewReplyKeyboard([]tgbotapi.KeyboardButton{btn, subButton})
+				}
+			}
 			bot.Send(msg)
-			dbConnection.AddSub(update.Message.Chat.ID, *update.Message.Location)
+			//			dbConnection.AddSub(update.Message.Chat.ID, *update.Message.Location)
 		}
+
 	}
 }
 

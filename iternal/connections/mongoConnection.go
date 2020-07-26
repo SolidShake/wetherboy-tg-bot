@@ -46,9 +46,6 @@ func (c *MongoConnection) ConnectMongo() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	//fmt.Print(c.client.Database(c.database).Name())
-
 }
 
 func (c *MongoConnection) GetDbName() interface{} {
@@ -57,6 +54,28 @@ func (c *MongoConnection) GetDbName() interface{} {
 
 func (c *MongoConnection) Disconnect() {
 	c.client.Disconnect(context.TODO())
+}
+
+func (c *MongoConnection) IsSub(chat_id int64) bool {
+	filter := bson.D{{"chatid", chat_id}}
+	collection := c.client.Database(c.database).Collection("SUBERS")
+	var result Subs
+	notFound := collection.FindOne(context.TODO(), filter).Decode(&result)
+	if notFound == nil {
+		return true
+	} else {
+		return false
+	}
+}
+
+func (c *MongoConnection) RemoveSub(chat_id int64) {
+	filter := bson.D{{"chatid", chat_id}}
+	collection := c.client.Database(c.database).Collection("SUBERS")
+	deleteResult, err := collection.DeleteMany(context.TODO(), filter)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("Deleted %v documents in the trainers collection\n", deleteResult.DeletedCount)
 }
 
 func (c *MongoConnection) AddSub(chat_id int64, location tgbotapi.Location) {
